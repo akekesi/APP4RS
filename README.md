@@ -127,6 +127,8 @@ $ poetry check
 
 ### To-Do
 - [ ] Using [GitHub Issues](https://github.com/akekesi/Connect4/issues) insted of this To-Do list 😎
+- [ ] Add coverage as dev
+- [ ] Add pylint as dev
 - [ ] Add logging
 - [ ] Add version
 - [ ] Add badges (GitHub Actions CI)
