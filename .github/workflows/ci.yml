@@ -37,7 +37,9 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install
+      working-directory: projects/task_1_remote_sensing_data
 
     - name: Run tests
       run: |
         poetry run python -m unittest discover tests
+      working-directory: projects/task_1_remote_sensing_data
