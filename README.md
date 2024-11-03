@@ -22,6 +22,7 @@
 1. [Prerequisites](#prerequisites)
 1. [Python Installation (WSL Ubuntu)](#python-installation-wsl-ubuntu)
 1. [Poetry Installation (WSL Ubuntu)](#poetry-installation-wsl-ubuntu)
+1. [Usage Poetry Shell (WSL Ubuntu)](#usage-poetry-shell-wsl-ubuntu)
 1. [To-Do](#to-do)
 1. [Authors](#authors)
 1. [Acknowledgements](#acknowledgements)
@@ -117,6 +118,20 @@ Check that the `poetry.lock` file has been created in your project directory and
 ```
 $ poetry show --tree
 $ poetry check
+```
+
+## Usage Poetry Shell
+### 1. Activate the Virtual Environment
+```
+$ poetry shell
+```
+### 2. Dectivate the Virtual Environment
+```
+$ exit
+```
+or
+```
+$ deactivate
 ```
 
 ## To-Do
