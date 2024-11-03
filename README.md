@@ -23,6 +23,7 @@
 1. [Python Installation (WSL Ubuntu)](#python-installation-wsl-ubuntu)
 1. [Poetry Installation (WSL Ubuntu)](#poetry-installation-wsl-ubuntu)
 1. [Usage Poetry Shell (WSL Ubuntu)](#usage-poetry-shell-wsl-ubuntu)
+1. [Usage](#usage)
 1. [To-Do](#to-do)
 1. [Authors](#authors)
 1. [Acknowledgements](#acknowledgements)
@@ -120,7 +121,7 @@ $ poetry show --tree
 $ poetry check
 ```
 
-## Usage Poetry Shell
+## Usage Poetry Shell (WSL Ubuntu)
 ### 1. Activate the Virtual Environment
 ```
 $ poetry shell
@@ -133,6 +134,14 @@ or
 ```
 $ deactivate
 ```
+
+## Usage
+### Links
+- [APP4RS - ISIS](https://isis.tu-berlin.de/course/view.php?id=39563)
+- [APP4RS - GitHub akekesi](https://github.com/akekesi/APP4RS)
+- [APP4RS - GitLab TU Berlin](https://git.tu-berlin.de/rsim/app4rs/APP4RS_WiSe24_Group01)
+- [APP4RS - Result](https://ntfy.app4rs.org/APP4RS_WiSe24_Group01_63e4a218e97f5bf97bd498c99288a237)
+
 
 ## To-Do
 ### Notation
