@@ -1,2 +1,8 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
 # untracked files and folders
 untracked-files/
+
+# log files
+test.txt

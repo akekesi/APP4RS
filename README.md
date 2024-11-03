@@ -2,7 +2,7 @@
 <div align="center">
 
    [![Status](https://img.shields.io/badge/Status-in_progress-yellow.svg)](https://github.com/akekesi/connect4?tab=readme-ov-file#description)
-   [![CI](https://github.com/akekesi/connect4/actions/workflows/ci.yml/badge.svg)](https://github.com/akekesi/connect4/actions)
+   [![CI](https://github.com/akekesi/APP4RS/actions/workflows/ci.yml/badge.svg)](https://github.com/akekesi/APP4RS/actions)
 </div>
 
 <div align="center">
