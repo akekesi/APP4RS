@@ -170,4 +170,4 @@ Attila Kékesi
 - [TU Berlin Advanced Python Programming for Deep Learning in Remote Sensing (APP4RS) [WiSe 2024/25]](https://isis.tu-berlin.de/course/view.php?id=39563).
 
 ## License
-Code released under the [MIT License](https://github.com/akekesi/connect4/blob/main/LICENSE).
+Code released under the [MIT License](https://github.com/akekesi/APP4RS/blob/main/LICENSE).
