@@ -3,16 +3,19 @@ import rasterio
 import numpy as np
 import pandas as pd
 
+
 # Define NO_DATA value
 VALUE_NO_DATA = 7
+
 
 def milestone01_task_1_4() -> None:
     """
     """
-    milestone01_task_1_4_1()
-    milestone01_task_1_4_2()
+    milestone01_task_1_4_3()
+    milestone01_task_1_4_4()
 
-def milestone01_task_1_4_1() -> None:
+
+def milestone01_task_1_4_3() -> None:
     """
     """
     num_wrong_size = 0
@@ -61,12 +64,15 @@ def milestone01_task_1_4_1() -> None:
                 if band in expected_resolutions:
                     expected_size = expected_resolutions[band]
 
+                    # Construct the path to each .tif file
+                    path_tif = os.path.join(dirpath, tif_file)
+
                     # TODO: is it needed (if or assert)
                     # Check if the file exists (to handle any missing files)
-                    if not os.path.isfile(path_metadata_parquet):
+                    if not os.path.isfile(path_tif):
                         continue
 
-                    with rasterio.open(os.path.join(dirpath, tif_file)) as src:
+                    with rasterio.open(path_tif) as src:
                         data = src.read(1) # Read the first (and only) band of the .tif (Single-Band) file.
                         
                         # Check for correct size
@@ -85,12 +91,18 @@ def milestone01_task_1_4_1() -> None:
     print(f"with-no-data: {num_with_no_data}")
     print(f"not-part-of-dataset: {num_not_part_of_dataset}")
 
-def milestone01_task_1_4_2() -> None:
+
+def milestone01_task_1_4_4() -> None:
     # Path to the BigEarthNet-v2.0-S2-with-errors
     path_big_earth_net_errors = "untracked-files/milestone01/BigEarthNet-v2.0-S2-with-errors"
 
     # Load the CSV file directly (gzipped)
     path_patches_for_stats = "untracked-files/milestone01/patches_for_stats.csv.gz"
+
+    # TODO: is it needed (if or assert)
+    # Check if the file exists (to handle any missing files)
+    if not os.path.isfile(path_patches_for_stats):
+        return
 
     patches_df = pd.read_csv(path_patches_for_stats)
 
