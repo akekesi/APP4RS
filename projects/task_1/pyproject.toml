@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "task-1-remote-sensing-data"
+name = "task_1"
 version = "0.1.0"
 description = ""
 authors = ["Attila Kekesi <kekesi.att@gmail.com>"]

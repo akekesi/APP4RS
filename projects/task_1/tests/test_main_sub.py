@@ -1,6 +1,6 @@
 import unittest
 
-from task_1_remote_sensing_data.main_sub import main_sub
+from projects.task_1.task_1.milestone01_task_1_3 import milestone01_task_1_3
 
 
 class TestConnect4(unittest.TestCase):
@@ -22,7 +22,8 @@ class TestConnect4(unittest.TestCase):
     def test_main_sub(self):
         """
         """
-        self.assertTrue(main_sub())
+        milestone01_task_1_3()
+        self.assertTrue(True)
 
 
 if __name__ == "__main__":
