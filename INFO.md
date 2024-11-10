@@ -5,3 +5,5 @@ from file_name import function/class --> it is working
 - [ ] milestone01 task_4_2 std_dev  
 pixels of bands?
 - [ ] smaller dataset for testing would be great
+- [ ] where is the file to retiling?
+- [ ] checking divisibility in task retiling?
