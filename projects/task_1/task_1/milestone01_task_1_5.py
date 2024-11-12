@@ -1,10 +1,10 @@
 import os
+import numpy as np
 import geopandas as gpd
 
 
 def milestone01_task_1_5() -> None:
     """
-    Executes the sequence of subtasks for milestone01 task 1.5.
     """
     milestone01_task_1_5_1()
     milestone01_task_1_5_2()
@@ -12,84 +12,114 @@ def milestone01_task_1_5() -> None:
 
 def milestone01_task_1_5_1() -> None:
     """
-    Calculates and prints the average number of labels for a set of GeoParquet files.
+    This function processes GeoParquet files in the specified directory to extract 
+    the multi-label set associated with each patch, omitting the "UNLABELED" labels. 
+    It calculates the average number of labels per patch and prints the result rounded 
+    to two decimal places.
+
+    Expected output format:
+    geom-average-num-labels: AVG rounded to two decimals
+
+    Raises:
+        AssertionError: If essential files or directories are not found.
     """
+
     # Directory containing the GeoParquet files
-    geoparquets_dir = "untracked-files/milestone01/geoparquets"
+    path_geoparquets_dir = "untracked-files/milestone01/geoparquets"
 
-    # List to store the number of labels per patch
-    num_labels = []
+    # Ensure the geoparquet directory exists before proceeding; raise an error if not found.
+    assert os.path.isdir(path_geoparquets_dir), f"Directory not found: {path_geoparquets_dir}"
 
-    unlabeld_class_id = [
-        122,
-        123,
-        124,
-        131,
-        132,
-        133,
-        141,
-        142,
-        332,
-        334,
-        335,
-        423,
-        999,
-    ]
+    # List to store the count of valid labels per patch
+    num_labels_unique = []
 
-    # Loop through each GeoParquet file in the directory
-    for filename in os.listdir(geoparquets_dir):
-        # Only process GeoParquet files
-        if filename.endswith(".parquet"):
+    # List of class IDs corresponding to "UNLABELED" labels
+    unlabeld_class_ids = {122, 123, 124, 131, 132, 133, 141, 142, 332, 334, 335, 423, 999}
+
+    # Loop through each file in the GeoParquet directory
+    for filename in os.listdir(path_geoparquets_dir):
+        # Process only files with a _reference_map.parquet extension
+        if filename.endswith("_reference_map.parquet"):
+            # Construct full path to the current GeoParquet file
+            file_path = os.path.join(path_geoparquets_dir, filename)
+
             # Load the GeoParquet file into a GeoDataFrame
-            gdf = gpd.read_parquet(os.path.join(geoparquets_dir, filename))
+            gdf = gpd.read_parquet(file_path)
 
+            # Extract the "DN" column, which contains label IDs
             labels = gdf["DN"]
 
-            # Filter out the "UNLABELED" label
-            labels = [label for label in labels if label in unlabeld_class_id]
+            # Filter out "UNLABELED" labels and count valid unique labels for this patch
+            valid_labels = labels[~np.isin(labels, unlabeld_class_ids)]
+            labels_unique = np.unique(valid_labels)
 
-            # Append the count of labels for this patch
-            num_labels.append(len(labels))
+            # Add the count of unique valid labels to the list
+            num_labels_unique.append(len(labels_unique))
 
-    # Calculate the average number of labels per patch
-    average_num_labels = sum(num_labels) / len(num_labels) if num_labels else 0
+    # Ensure there were valid patches processed
+    if num_labels_unique:
+        # Calculate the average number of labels per patch, rounded to two decimals
+        average_num_labels = round(sum(num_labels_unique) / len(num_labels_unique), 2)
+    else:
+        average_num_labels = 0.0  # Handle case where no valid patches were found
 
-    # Print the result, rounded to two decimal places
+    # Print the result: average number of labels per patch
     print(f"geom-average-num-labels: {average_num_labels:.2f}")
 
 
 def milestone01_task_1_5_2() -> None:
     """
-    Identifies and counts the number of overlapping patches in a set of GeoParquet files.
+    This function processes GeoParquet files to count overlapping patches based on their geometries.
+    Patches are considered overlapping if they share any interior point. Each patch is counted only once
+    for overlaps.
+
+    The task uses a spatial index to efficiently find overlapping geometries and count the unique overlaps.
+
+    Raises:
+        AssertionError: If essential files or directories are not found.    
     """
     # Directory containing the GeoParquet files
-    geoparquets_dir = "untracked-files/milestone01/geoparquets"
+    path_geoparquets_dir = "untracked-files/milestone01/geoparquets"
 
-    # List to store the geometries of the patches
+    # Ensure the geoparquet directory exists before proceeding; raise an error if not found.
+    assert os.path.isdir(path_geoparquets_dir), f"Directory not found: {path_geoparquets_dir}"
+
+    # List to store the geometries and corresponding patch names
     geometries = []
     patches = []
 
     # Loop through each GeoParquet file in the directory
-    for filename in os.listdir(geoparquets_dir):
+    for filename in os.listdir(path_geoparquets_dir):
         # Only process GeoParquet files
-        if filename.endswith(".parquet"):
+        if filename.endswith("_reference_map.parquet"):
             # Load the GeoParquet file into a GeoDataFrame
-            gdf = gpd.read_parquet(os.path.join(geoparquets_dir, filename))
+            gdf = gpd.read_parquet(os.path.join(path_geoparquets_dir, filename))
 
+            # Add geometries and corresponding patch names
             geometries.extend(gdf["geometry"])
             patches.extend([filename] * len(gdf))
 
-    # Count the number of overlaps
+    # Create a GeoDataFrame to use its spatial index
+    gdf_all = gpd.GeoDataFrame(geometry=geometries)
+
+    # Use the spatial index for efficient overlap checks
+    sindex = gdf_all.sindex
+
+    # Set to track unique overlapping patches
     overlaps = set()
 
-    # Compare each patch with every other patch to find overlaps
-    for i in range(len(geometries)):
-        for j in range(i + 1, len(geometries)):  # Only compare once per pair
-            if geometries[i].intersects(geometries[j]):
-                overlaps.add(patches[i])  # Add patch i to overlaps
-                overlaps.add(patches[j])  # Add patch j to overlaps
+    # Compare each geometry with others using the spatial index
+    for i, geom in enumerate(geometries):
+        # Query the spatial index to find potential overlapping geometries
+        possible_matches_index = list(sindex.intersection(geom.bounds))
+        for j in possible_matches_index:
+            # Ensure not comparing the same patch with itself
+            if i != j and geom.intersects(geometries[j]):
+                # Add the overlapping patch
+                overlaps.add(patches[i])
+                overlaps.add(patches[j])
 
-    # Print the result: number of overlaps
+    # Print the result: number of unique overlaps
     print(f"geom-num-overlaps: {len(overlaps)}")
 
 

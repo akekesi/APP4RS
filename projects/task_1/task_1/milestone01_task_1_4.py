@@ -2,26 +2,37 @@ import os
 import rasterio
 import numpy as np
 import pandas as pd
+from rasterio.transform import Affine
 
 
-# Define NO_DATA value
-# NO_DATA pixel value indicating missing or invalid data in the image
+# Define NO_DATA value, indicating missing or invalid data in the image
 VALUE_NO_DATA = 7
 
 
 def milestone01_task_1_4() -> None:
     """
-    Executes the sequence of subtasks for milestone01 task 1.4.
     """
+    milestone01_task_1_4_1()
+    milestone01_task_1_4_2()
     milestone01_task_1_4_3()
-    milestone01_task_1_4_4()
-    milestone01_task_1_4_5()
 
 
-def milestone01_task_1_4_3() -> None:
+def milestone01_task_1_4_1() -> None:
     """
-    Task 1.4.3: Validates patch sizes, checks for NO_DATA values, and verifies if the patch 
-    exists in the metadata. Counts errors for wrong size, NO_DATA, and missing metadata.
+    Checks each remote-sensing patch in the BigEarthNet-v2.0-S2-with-errors/ directory 
+    for the following issues:
+        - Incorrect number of pixels for specific bands
+        - Presence of NO_DATA (value 7) pixels
+        - Missing metadata in the metadata.parquet file
+
+    The function prints the total count of invalid patches per error type in the 
+    specified format:
+        wrong-size: #samples
+        with-no-data: #samples
+        not-part-of-dataset: #samples
+
+    Raises:
+        AssertionError: If essential files or directories are not found.
     """
     num_wrong_size = 0
     num_with_no_data = 0
@@ -37,16 +48,17 @@ def milestone01_task_1_4_3() -> None:
     # Path to the metadata Parquet file
     path_metadata_parquet = "untracked-files/milestone01/metadata.parquet"
 
-    # TODO: is it needed (if or assert)
-    # Check if the metadata file exists
-    if not os.path.isfile(path_metadata_parquet):
-        return
+    # Ensure the metadata file exists before proceeding; raise an error if not found.
+    assert os.path.isfile(path_metadata_parquet), f"File not found: {path_metadata_parquet}"
 
     # Read the metadata file into a DataFrame
     metadata = pd.read_parquet(path=path_metadata_parquet)
 
     # Path to the BigEarthNet-v2.0-S2-with-errors directory containing the patches
     path_big_earth_net_errors = "untracked-files/milestone01/BigEarthNet-v2.0-S2-with-errors"
+
+    # Ensure the BigEarthNets with errors directory exists before proceeding; raise an error if not found.
+    assert os.path.isdir(path_big_earth_net_errors), f"Directory not found: {path_big_earth_net_errors}"
 
     # Recursively walk through the directory to find patch files
     for dirpath, dirnames, filenames in os.walk(path_big_earth_net_errors):
@@ -60,10 +72,10 @@ def milestone01_task_1_4_3() -> None:
             # Check if the patch ID exists in the metadata
             if patch_id not in metadata["patch_id"].values:
                 num_not_part_of_dataset += 1
-                continue
 
             # Check each .tif file for resolution and NO_DATA values
             for tif_file in tif_files:
+                # Extract band from filename
                 band = tif_file.split(".")[0].split("_")[-1]
                 if band in expected_resolutions:
                     expected_size = expected_resolutions[band]
@@ -71,55 +83,66 @@ def milestone01_task_1_4_3() -> None:
                     # Construct the full path to the .tif file
                     path_tif = os.path.join(dirpath, tif_file)
 
-                    # TODO: is it needed (if or assert)
-                    # Check if the .tif file exists
-                    if not os.path.isfile(path_tif):
-                        continue
+                    # Ensure the .tif file exists before proceeding; raise an error if not found.
+                    assert os.path.isfile(path_tif), f"File not found: {path_tif}"
 
-                    # Open the .tif file and check its data
+                    # Open the .tif file and check for errors
                     with rasterio.open(path_tif) as src:
-                        data = src.read(1)  # Read the first (only) band of the .tif file
+                        # Read the first (only) band of the .tif file
+                        data = src.read(1)
 
-                        # Check if the image has the expected resolution (size)
-                        if data.shape != expected_size:
-                            num_wrong_size += 1
-                            continue
+                    # Check if the image has the expected resolution (size)
+                    if data.shape != expected_size:
+                        num_wrong_size += 1
 
-                        # Check for NO_DATA values in the image
-                        if (data == VALUE_NO_DATA).any():
-                            num_with_no_data += 1
-                            continue
+                    # Check for NO_DATA values in the image
+                    if (data == VALUE_NO_DATA).any():
+                        num_with_no_data += 1
 
-    # Print the error counts
+    # Print the results
     print(f"wrong-size: {num_wrong_size}")
     print(f"with-no-data: {num_with_no_data}")
     print(f"not-part-of-dataset: {num_not_part_of_dataset}")
 
 
-def milestone01_task_1_4_4() -> None:
+def milestone01_task_1_4_2() -> None:
     """
-    Task 1.4.4: Calculates and prints the mean and standard deviation for each band across all patches
-    based on valid (non-NO_DATA) pixel values. It uses the patches_for_stats.csv.gz file to determine the patches.
+    Calculates and prints the mean and standard deviation for each band across all patches
+    based on valid (non-NO_DATA) pixel values. Uses the patches_for_stats.csv.gz file to determine
+    the patches and ensures that all files are read correctly without including any NO_DATA values.
+
+    Expected output format for each band:
+    B01 mean: MEAN rounded to the closest integer
+    B01 std-dev: Std-Dev rounded to the closest integer
+    ...
+    B12 mean: MEAN rounded to the closest integer
+    B12 std-dev: Std-Dev rounded to the closest integer
+
+    Raises:
+        AssertionError: If essential files or directories are not found.
     """
     # Path to the BigEarthNet-v2.0-S2-with-errors directory containing the patches
     path_big_earth_net_errors = "untracked-files/milestone01/BigEarthNet-v2.0-S2-with-errors"
 
+    # Ensure the BigEarthNets with errors directory exists before proceeding; raise an error if not found.
+    assert os.path.isdir(path_big_earth_net_errors), f"Directory not found: {path_big_earth_net_errors}"
+
     # Path to the CSV file containing patch information
     path_patches_for_stats = "untracked-files/milestone01/patches_for_stats.csv.gz"
 
-    # TODO: is it needed (if or assert)
-    # Check if the CSV file exists
-    if not os.path.isfile(path_patches_for_stats):
-        return
+    # Ensure the CSV file exists before proceeding; raise an error if not found.
+    assert os.path.isfile(path_patches_for_stats), f"File not found: {path_patches_for_stats}"
 
     # Read the CSV file into a DataFrame
-    patches_df = pd.read_csv(path_patches_for_stats)
+    patches_df = pd.read_csv(path_patches_for_stats, compression='gzip')
 
     # List of bands to analyze
     bands = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12"]
 
-    # Dictionary to store pixel data for each band
-    band_stats = {band: [] for band in bands}
+    # # Dictionary to store pixel data for each band
+    # band_stats = {band: [] for band in bands}
+    # Dictionary to store mean, variance, and count for each band
+    band_stats = {band: {'mean': 0.0, 'var': 0.0, 'count': 0} for band in bands}
 
     # Loop through each patch row in the DataFrame
     for index, row in patches_df.iterrows():
@@ -131,49 +154,64 @@ def milestone01_task_1_4_4() -> None:
             # Construct the path to the corresponding .tif file
             path_tif = os.path.join(path_big_earth_net_errors, tile, patch_id, f"{patch_id}_{band}.tif")
 
-            # TODO: is it needed (if or assert)
-            # Check if the .tif file exists
-            if not os.path.isfile(path_tif):
-                continue
+            # Ensure the .tif file exists before proceeding; raise an error if not found.
+            assert os.path.isfile(path_tif), f"File not found: {path_tif}"
 
             # Open the .tif file and read its pixel data
             with rasterio.open(path_tif) as src:
-                data = src.read(1)    # Read the first (only) band of the .tif file
+                # Read the first (only) band of the .tif file
+                data = src.read(1)
 
-                # Mask out NO_DATA pixels
-                valid_data = data[data != VALUE_NO_DATA]
+            # Mask out NO_DATA pixels
+            valid_data = data[data != VALUE_NO_DATA]
 
-                if valid_data.size > 0:
-                    band_stats[band].append(valid_data)
+            # Check size
+            if valid_data.size > 0:
+                # band_stats[band].append(valid_data)
+                band_stats[band]['mean'], band_stats[band]['var'], band_stats[band]['count'] = update_stats(
+                    existing_mean=band_stats[band]['mean'],
+                    existing_var=band_stats[band]['var'],
+                    count=band_stats[band]['count'],
+                    new_data=valid_data,
+                )
 
     # Calculate and print the mean and standard deviation for each band
     for band in bands:
-        pixels_mean = 0
-        pixels_std_dev = 0
-        if len(band_stats[band]) > 0:
-            pixels = np.concatenate(band_stats[band])
-            pixels_n = pixels.size
-            pixels_mean = np.sum(pixels) / pixels_n
-            pixels_std_dev = np.sqrt(1 / pixels_n * np.sum((pixels - pixels_mean) ** 2))
+        # if len(band_stats[band]) > 0:
+        #     # Concatenate all pixel arrays for the band and calculate statistics
+        #     pixels = np.concatenate(band_stats[band])
+        #     pixels_n = pixels.size
+        #     pixels_mean = np.sum(pixels) / pixels_n
+        #     pixels_std_dev = np.sqrt(1 / pixels_n * np.sum((pixels - pixels_mean) ** 2))
+        if band_stats[band]['count'] > 1:
+            pixels_mean = band_stats[band]['mean']
+            pixels_std_dev = np.sqrt(band_stats[band]['var'] / (band_stats[band]['count'] - 1))        
+        else:
+            # Default values if no valid data is found
+            pixels_mean = 0
+            pixels_std_dev = 0
         print(f"{band} mean: {round(pixels_mean)}")
         print(f"{band} std-dev: {round(pixels_std_dev)}")
 
 
-def milestone01_task_1_4_5() -> None:
+def milestone01_task_1_4_3() -> None:
     """
-    Task 1.4.5: Splits a single GeoTIFF file into four square sub-patches and saves them as new GeoTIFFs. 
-    Each sub-patch is saved in a specified output directory, and checks are performed to ensure integrity.
+    Splits a given GeoTIFF image into four equally sized, square sub-patches and 
+    exports them as new GeoTIFF files with suffixes (_A.tif, _B.tif, _C.tif, _D.tif).
+    Ensures the sub-patches retain correct geographical information and verifies this 
+    after exporting.
+
+    Raises:
+        AssertionError: If essential files or directories are not found.
     """
     # Path to the original GeoTIFF file to be split
     path_tile_original = "untracked-files/milestone01/BigEarthNet-v2.0-S2-with-errors/S2B_MSIL2A_20170808T094029_N9999_R036_T35ULA/S2B_MSIL2A_20170808T094029_N9999_R036_T35ULA_33_29/S2B_MSIL2A_20170808T094029_N9999_R036_T35ULA_33_29_B02.tif"
 
+    # Ensure the .tif file exists before proceeding; raise an error if not found.
+    assert os.path.isfile(path_tile_original), f"File not found: {path_tile_original}"
+
     # Output directory to save the split patches
     path_output_dir = "untracked-files/re-tiled"
-
-    # TODO: is it needed (if or assert)
-    # Check if the original file exists
-    if not os.path.isfile(path_tile_original):
-        return
 
     # Create the output directory if it doesn't exist
     os.makedirs(path_output_dir, exist_ok=True)
@@ -183,74 +221,101 @@ def milestone01_task_1_4_5() -> None:
         # Read the image data into a numpy array
         data = src.read()
 
-        # Get the dimensions of the image
-        height = data.shape[1]
-        width = data.shape[2]
-        
-        # Ensure the image is square (can be split evenly into 4 patches)
-        if height != width:
-            raise ValueError("Input image must be square.")
-        
-        # Calculate the midpoint to split the image into 4 patches
-        mid_x = width // 2
-        mid_y = height // 2
-        # TODO: check divisibility
-        
-        # Create the 4 sub-patches
-        patches = {
-            'A': data[:, :mid_y, :mid_x],
-            'B': data[:, :mid_y, mid_x:],
-            'C': data[:, mid_y:, :mid_x],
-            'D': data[:, mid_y:, mid_x:],
-        }
-
-        # Write each patch to a new GeoTIFF file
-        for patch, patch_data in patches.items():
-
-            # Extract the base filename and extension from the original tile path
-            file_name, file_ext = os.path.splitext(os.path.basename(path_tile_original))
-
-            # Define the output filename by appending the patch name (A, B, C, D) to the original filename
-            path_output_file = os.path.join(path_output_dir, f'{file_name}_{patch}{file_ext}')
-            
-            # Create a new GeoTIFF file for each patch with the appropriate metadata
-            with rasterio.open(
-                fp=path_output_file,
-                mode='w', 
-                driver='GTiff', 
-                width=patch_data.shape[2], 
-                height=patch_data.shape[1], 
-                count=src.count, 
-                crs=src.crs, 
-                transform=src.transform,
-                dtype=src.dtypes[0], 
-            ) as dst:
-                # Write the patch data to the new GeoTIFF file
-                dst.write(patch_data)
-
-            # After writing the patch, open the new GeoTIFF file to verify its integrity
-            with rasterio.open(path_output_file) as dst:
-                # Perform integrity checks on the new GeoTIFF
-                milestone01_task_1_4_5_check(src, dst)
-
-
-def milestone01_task_1_4_5_check(src, dst) -> None:
-    """
-    Perform integrity checks on two raster files to ensure that
-    the Coordinate Reference System (CRS) and affine transform are consistent.
+    # Get the dimensions of the image
+    height = data.shape[1]
+    width = data.shape[2]
     
+    # Calculate the midpoint to split the image into 4 patches
+    if width % 2 or height % 2:
+        assert False, f"GeoTIFF file {path_tile_original} can not be equally sized."
+
+    # Calculate the midpoint to split the image into 4 patches
+    mid_x = width // 2
+    mid_y = height // 2
+
+    # Create the 4 sub-patches
+    patches = {
+        'A': (data[:, :mid_y, :mid_x], src.transform),
+        'B': (data[:, :mid_y, mid_x:], src.transform * Affine.translation(mid_x, 0)),
+        'C': (data[:, mid_y:, :mid_x], src.transform * Affine.translation(0, mid_y)),
+        'D': (data[:, mid_y:, mid_x:], src.transform * Affine.translation(mid_x, mid_y)),
+    }
+
+    # Write each patch to a new GeoTIFF file
+    for patch, (patch_data, patch_transform) in patches.items():
+
+        # Extract the base filename and extension from the original tile path
+        file_name, file_ext = os.path.splitext(os.path.basename(path_tile_original))
+
+        # Define the output filename by appending the patch name (A, B, C, D) to the original filename
+        path_output_file = os.path.join(path_output_dir, f'{file_name}_{patch}{file_ext}')
+
+        # Create a new GeoTIFF file for each patch with the appropriate metadata
+        with rasterio.open(
+            fp=path_output_file,
+            mode='w', 
+            driver='GTiff', 
+            width=patch_data.shape[2], 
+            height=patch_data.shape[1], 
+            count=src.count, 
+            crs=src.crs, 
+            transform=patch_transform,
+            dtype=src.dtypes[0], 
+        ) as dst:
+            # Write the patch data to the new GeoTIFF file
+            dst.write(patch_data)
+
+        # After writing the patch, open the new GeoTIFF file to verify its integrity
+        with rasterio.open(path_output_file) as dst:
+            # Perform integrity checks on the new GeoTIFF
+            milestone01_task_1_4_3_check(src, dst)
+
+
+def milestone01_task_1_4_3_check(src, dst) -> None:
+    """
+    Perform integrity checks on the original and newly generated sub-patch GeoTIFFs 
+    to ensure they retain the correct geographical information. The checks include:
+
+    - Verifying that the Coordinate Reference System (CRS) matches between the source 
+      and destination images.
+    - Checking that the spatial transform is updated and consistent for each patch 
+      (ensuring accurate geographical referencing).
+
     Args:
         src: The source raster (original tile).
-        dst: The destination raster (patch).
-    
-    Raises:
-        AssertionError: If there is a mismatch in CRS or transform.
+        dst: The destination raster (sub-patch).
     """
     # Check if the Coordinate Reference System (CRS) of the patch matches the original image
     assert dst.crs == src.crs, f"CRS mismatch: {dst.crs} vs {src.crs}"
 
-    # Check if the affine transformation (spatial referencing) of the patch matches the original image
-    assert dst.transform == src.transform, f"Transform mismatch: {dst.transform} vs {src.transform}"
+    # Check the affine transformation:
+    # Patch "_A.tif" should retain the original transform, others should differ.
+    if "_A.tif" in dst.name:
+        assert dst.transform == src.transform, f"Transform should be the same: {dst.transform} vs {src.transform}"
+    else:
+        assert dst.transform != src.transform, f"Transform should be different: {dst.transform} vs {src.transform}"
+
+
+def update_stats(existing_mean, existing_var, count, new_data):
+    """
+    Incrementally updates the mean and variance based on new data using Welford's method.
+
+    Args:
+        existing_mean (float): Current mean value.
+        existing_var (float): Current variance value.
+        count (int): Current count of observations.
+        new_data (np.ndarray): New batch of data points.
+
+    Returns:
+        tuple: Updated mean, variance, and count.
+    """
+    for x in new_data:
+        count += 1
+        delta = x - existing_mean
+        existing_mean += delta / count
+        delta2 = x - existing_mean
+        existing_var += delta * delta2
+    return existing_mean, existing_var, count
 
 
 if __name__ == "__main__":
