@@ -37,6 +37,7 @@ This project was initially developed as an assignment for the [TU Berlin Advance
 
 ## Prerequisites
 - [Python 3.12.7](https://www.python.org/downloads/release/python-3127/)
+- [Poetry](https://python-poetry.org/docs/)
 
 ## Python Installation (WSL Ubuntu)
 ### 1. Update Your Package List
