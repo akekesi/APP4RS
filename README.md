@@ -154,8 +154,8 @@ fall: 0
 winter: 0
 average-num-labels: 3.58
 maximum-num-labels: 9
-wrong-size: 125
-with-no-data: 849
+wrong-size: 100
+with-no-data: 150
 not-part-of-dataset: 50
 B01 mean: 217
 B01 std-dev: 138
@@ -177,10 +177,10 @@ B8A mean: 2355
 B8A std-dev: 1327
 B09 mean: 2353
 B09 std-dev: 1290
-B11 mean: 1330
+B11 mean: 1329
 B11 std-dev: 834
 B12 mean: 749
-B12 std-dev: 579
+B12 std-dev: 580
 geom-average-num-labels: 2.10
 geom-num-overlaps: 4981
 ```
