@@ -16,6 +16,10 @@ def milestone01_task_1_6(save_png: bool = False) -> None:
     # Read the metadata file into a DataFrame
     metadata = pd.read_parquet(path=path_metadata_parquet)
 
+    # Ensure the "labels" and "patch_id" columns exist in the metadata
+    assert "labels" in metadata.columns, "Missing 'labels' column in metadata"
+    assert "patch_id" in metadata.columns, "Missing 'patch_id' column in metadata"
+
     # Train/test split ratio
     ratio_train = 0.8
 
@@ -53,10 +57,21 @@ def milestone01_task_1_6(save_png: bool = False) -> None:
         "test": pd.Series(list(patches_test))
     })
 
+    path_untracked_files = "untracked-files"
+
+    # Ensure the BigEarthNets with errors directory exists before proceeding; raise an error if not found.
+    assert os.path.isdir(path_untracked_files), f"Directory not found: {path_untracked_files}"
+
+    # Construct the path to the corresponding .csv file
+    path_split_csv = os.path.join(path_untracked_files, "split.csv")
+
     # Save the split to CSV
-    split_df.to_csv("untracked-files/split.csv", index=False)
+    split_df.to_csv(path_split_csv, index=False)
 
     if save_png:
+        # Construct the path to the corresponding .csv file
+        path_split_png = os.path.join(path_untracked_files, "split.png")
+
         # Count label occurrences in train and test
         train_counts = metadata[metadata["patch_id"].isin(patches_train)]["labels"].explode().value_counts()
         test_counts = metadata[metadata["patch_id"].isin(patches_test)]["labels"].explode().value_counts()
@@ -70,7 +85,7 @@ def milestone01_task_1_6(save_png: bool = False) -> None:
         plt.xlabel("Labels")
         plt.ylabel("Count")
         plt.legend()
-        plt.savefig("untracked-files/split.png")
+        plt.savefig(path_split_png)
         plt.close()
 
 

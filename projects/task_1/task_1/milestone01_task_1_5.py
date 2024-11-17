@@ -43,8 +43,14 @@ def milestone01_task_1_5_1() -> None:
             # Construct full path to the current GeoParquet file
             file_path = os.path.join(path_geoparquets_dir, filename)
 
+            # Ensure the metadata file exists before proceeding; raise an error if not found.
+            assert os.path.isfile(file_path), f"File not found: {file_path}"
+
             # Load the GeoParquet file into a GeoDataFrame
             gdf = gpd.read_parquet(file_path)
+
+            # Assert the "DN" column exists in the GeoDataFrame
+            assert "DN" in gdf.columns, f"Column 'DN' missing in file: {file_path}"
 
             # Extract the "DN" column, which contains label IDs
             labels = gdf["DN"]
@@ -55,6 +61,9 @@ def milestone01_task_1_5_1() -> None:
 
             # Add the count of unique valid labels to the list
             num_labels_unique.append(len(labels_unique))
+
+    # Ensure there were valid patches processed
+    assert num_labels_unique, "No valid patches processed in the directory."
 
     # Ensure there were valid patches processed
     if num_labels_unique:
@@ -92,12 +101,24 @@ def milestone01_task_1_5_2() -> None:
     for filename in os.listdir(path_geoparquets_dir):
         # Only process GeoParquet files
         if filename.endswith("_reference_map.parquet"):
+            # Construct full path to the current GeoParquet file
+            file_path = os.path.join(path_geoparquets_dir, filename)
+
+            # Ensure the metadata file exists before proceeding; raise an error if not found.
+            assert os.path.isfile(file_path), f"File not found: {file_path}"
+
             # Load the GeoParquet file into a GeoDataFrame
-            gdf = gpd.read_parquet(os.path.join(path_geoparquets_dir, filename))
+            gdf = gpd.read_parquet(file_path)
+
+            # Assert the "geometry" column exists in the GeoDataFrame
+            assert "geometry" in gdf.columns, f"Column 'geometry' missing in file: {file_path}"
 
             # Add geometries and corresponding patch names
             geometries.extend(gdf["geometry"])
             patches.extend([filename] * len(gdf))
+
+    # Ensure there are geometries to process
+    assert geometries, "No geometries were loaded for processing."
 
     # Create a GeoDataFrame to use its spatial index
     gdf_all = gpd.GeoDataFrame(geometry=geometries)

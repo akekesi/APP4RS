@@ -32,6 +32,9 @@ def milestone01_task_1_3() -> None:
     # Read the metadata file into a DataFrame
     metadata = pd.read_parquet(path=path_metadata_parquet)
 
+    # Assert that 'patch_id' column exists
+    assert "patch_id" in metadata.columns, "'patch_id' column is missing in the metadata file."
+
     # Extract the date from the "patch_id" column using a regex pattern
     date = metadata["patch_id"].str.extract(r"(\d{8})")[0]
 
@@ -53,6 +56,9 @@ def milestone01_task_1_3() -> None:
 
     # Count the number of labels for each patch, handling different data structures
     metadata["label_num"] = metadata["labels"].apply(lambda x: len(x) if isinstance(x, (list, np.ndarray)) else 0)
+
+    # Assert that label counts are non-negative integers
+    assert (metadata["label_num"] >= 0).all(), "Label count contains invalid values."
 
     # Calculate the average and maximum number of labels
     label_num_avg = metadata["label_num"].mean()
