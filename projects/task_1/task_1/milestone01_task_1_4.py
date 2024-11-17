@@ -5,10 +5,6 @@ import pandas as pd
 from rasterio.transform import Affine
 
 
-# Define NO_DATA value, indicating missing or invalid data in the image
-VALUE_NO_DATA = 7
-
-
 def milestone01_task_1_4() -> None:
     """
     """
@@ -64,6 +60,10 @@ def milestone01_task_1_4_1() -> None:
     for dirpath, dirnames, filenames in os.walk(path_big_earth_net_errors):
         tif_files = [f for f in filenames if f.endswith(".tif")]
 
+        not_part_of_dataset = False
+        with_no_data = False
+        wrong_size = False
+
         # Process only directories containing .tif files (band data)
         if tif_files:
             # Extract patch ID from the directory name
@@ -71,7 +71,7 @@ def milestone01_task_1_4_1() -> None:
 
             # Check if the patch ID exists in the metadata
             if patch_id not in metadata["patch_id"].values:
-                num_not_part_of_dataset += 1
+                not_part_of_dataset = True
 
             # Check each .tif file for resolution and NO_DATA values
             for tif_file in tif_files:
@@ -90,14 +90,23 @@ def milestone01_task_1_4_1() -> None:
                     with rasterio.open(path_tif) as src:
                         # Read the first (only) band of the .tif file
                         data = src.read(1)
+                        value_no_data = src.nodata
 
                     # Check if the image has the expected resolution (size)
                     if data.shape != expected_size:
-                        num_wrong_size += 1
+                        wrong_size = True
 
                     # Check for NO_DATA values in the image
-                    if (data == VALUE_NO_DATA).any():
-                        num_with_no_data += 1
+                    if (data == value_no_data).any():
+                        with_no_data = True
+
+        # count for patches
+        if not_part_of_dataset:
+            num_not_part_of_dataset += 1
+        if wrong_size:
+            num_wrong_size += 1
+        if with_no_data:
+            num_with_no_data += 1
 
     # Print the results
     print(f"wrong-size: {num_wrong_size}")
@@ -161,9 +170,10 @@ def milestone01_task_1_4_2() -> None:
             with rasterio.open(path_tif) as src:
                 # Read the first (only) band of the .tif file
                 data = src.read(1)
+                value_no_data = src.nodata
 
             # Mask out NO_DATA pixels
-            valid_data = data[data != VALUE_NO_DATA]
+            valid_data = data[data != value_no_data]
 
             # Check size
             if valid_data.size > 0:
