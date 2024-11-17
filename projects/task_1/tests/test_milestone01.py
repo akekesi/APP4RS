@@ -5,6 +5,7 @@ from task_1.milestone01 import milestone01_tasks
 from task_1.milestone01_task_1_3 import milestone01_task_1_3
 from task_1.milestone01_task_1_4 import milestone01_task_1_4, milestone01_task_1_4_1, milestone01_task_1_4_2, milestone01_task_1_4_3
 from task_1.milestone01_task_1_5 import milestone01_task_1_5, milestone01_task_1_5_1, milestone01_task_1_5_2
+from task_1.milestone01_task_1_6 import milestone01_task_1_6
 
 
 class TestMilestone01(unittest.TestCase):
@@ -81,6 +82,12 @@ class TestMilestone01(unittest.TestCase):
         """
         """
         milestone01_task_1_5_2()
+        self.assertTrue(True)
+
+    def test_milestone_task_1_6(self):
+        """
+        """
+        milestone01_task_1_6()
         self.assertTrue(True)
 
 
